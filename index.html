@@ -23,6 +23,9 @@
 				margin: 10px;
 				border: 1px solid;
 			}
+			.layer1 {
+				position: fixed;
+			}
 		</style>
 	</head>
 	<body>
@@ -76,7 +79,7 @@
 			</form>
 		</div>
 		<div align="center">
-			<input id="txtCoordinates" type="text" placeholder="Show coordinates" size="40">
+			<input id="txtCoordinates" class="layer1" type="text" placeholder="Show coordinates" size="40">
 			<input id="btnClear" type="button" border="1" value="Clear the canvas">
 		</div>
 		<div align="center">
@@ -108,16 +111,30 @@
 			var canvas=document.getElementById('mainCanvas');
 			//Ссылка на textarea tarDotsOnPlot
 			var dotsOnPlot = document.getElementById("tarDotsOnPlot");
-			//
+			//Ссылка на select sltLineColor для выбора цвета вспомогательных линий
 			var selectLineColor = document.getElementById("sltLineColor");
-			//
+			//Ссылка на select sltPointColor для выбора цвета точек
 			var selectPointColor = document.getElementById("sltPointColor");
 //---Ссылки на элементы интерфейса---]			
 
 //[---Глобальные переменные---
 			//Переменная для организации UI
 			var mode = 0;
+			//Массив, содержащий реперные точки
+			var controlPoints = [];
+			//Массив, содержащий реперные линии
+			var controlLines = [];
+			//Переменные, содержащие значения для четырех реперных точек,
+			//по которым рассчитываются масштабные коэффициенты
+			var newX3, newX4, newY5, newY6;
+			//Переменная, содержащая угол наклона оси 0'X' по отношению к оси 0X
+			var alpha;
+			//Масштабные коэффициенты
+			var sc1, sc2;
+			//Тангенсы углов наклона осей абсцисс и ординат новой системы координат соотвественно.
+			var k1, k2;
 //---Глобальные переменные---]
+
 //[---Выбор графического файла---
 			//Переменная, содержащая путь к файлу с графиком
 			var pathToTheGraph;
@@ -144,30 +161,29 @@
 				} else { 
 					//Происходит отрисовка графика в выбранном масштабе
 					drawGraph(pathToTheGraph, selectScale.value);
+					//Изменение подсказки для пользователя
 					promptDiv.innerHTML = "<h1> Выберите точку, лежащую на оси абсцисс </h1>";
 				}
 			});
 //---Выбор размера графика---]
 
 //[---Отображение координаты точки в новой системе координат---
-   			//Обработчик события движения курсора над canvas'ом mainCanvas.
-   			//Начинает работать в том случае, если все реперные точки уже поставлены,
-   			//т.е. известны масштабные коэффициенты и координаты начала новой
-   			//системы координат в старой системе координат.
-   			var controlPoints = [];
-
-			//Переменная, содержащая угол наклона оси 0'X' по отношению к оси 0X
-			var alpha;
-			//Масштабные коэффициенты
-			var sc1, sc2;
-
+			//Обработчик события движения курсора над canvas'ом mainCanvas.
+			//Начинает работать в том случае, если все реперные точки уже поставлены,
+			//т.е. известны масштабные коэффициенты и координаты начала новой
+			//системы координат в старой системе координат.
 			canvas.addEventListener("mousemove", function(event){
+				//Переменная, хранящая координаты левого верхнего угла canvas'а mainCanvas в системе координат page
 				var canvasCoord = getCanvasCoordinates(3);
+//!Переменная для хранения текущих координат курсора в системе координат canvas'а mainCanvas
 				var canvasEvent = createCanvasEvent(event, canvasCoord);
-				newCoordinates.value = canvasCoord.left + ";" + canvasCoord.top;
+//!Отображение текущих координат курсора в системе координат canvas'а mainCanvas в input'е txtCoordinates
 				newCoordinates.value = canvasEvent.x + ";" + canvasEvent.y;
+				//Если получены значения всех четырех реперных точек
 				if (mode > 6) {
+					//Преобразование текущих координат курсора в системе canvas'а mainCanvas в координаты в новой системе координат
 					var newXY = coordinateChange(canvasEvent, controlPoints[11], sc1, sc2, alpha);
+					//Отображение преобразованных координат курсора в input'е txtCoordinates
 					newCoordinates.value = newXY.x + ";" + newXY.y;
 				}
 			});
@@ -180,6 +196,8 @@
 				clearMainCanvas();
 				//Создание заголовка в textarea tarDotsOnPlot
 				tarDotsOnPlot.value = "X\';Y\'\n";
+//!!!Изменение режима!!!
+				mode = 0;
 			});
 //---Очистка введенных значений---]
 
@@ -188,24 +206,13 @@
 			var context = canvas.getContext('2d');
 			//Очистка canvas'a mainCanvas
 			clearMainCanvas();
-
-
-//Переменные для хранения коэффициентов уравнений реперных прямых
-			//Тангенсы углов наклона осей абсцисс и ординат новой системы координат соотвественно.
-			var k1, k2;
-			var newX3, newX4, newY5, newY6;
-			newX3 = 0.5;
-			newX4 = 0.7;
-			newY5 = 1.1;
-			newY6 = 1.3;
-
-			var controlLines = [];
 			//Обработчик события нажатия мыши на canvas mainCanvas
 			canvas.addEventListener("click", function(event){
 				//Переменная для хранения координат левого верхнего угла canvas'а mainCanvas в системе координат page
 				var canvasCoord = getCanvasCoordinates(3);
 				//Переменная для хранения координат текущей точки в системе координат canvas'а mainCanvas
 				var currentPoint = createCanvasEvent(event, canvasCoord);
+				//
 				switch (mode) {
 					//Клик по canvas'у mainCanvas до загрузки графика вызывает напоминание пользователю о необходимости загрузки графика
 					case 0:
@@ -260,60 +267,97 @@
 						mode = 3;
 						promptDiv.innerHTML = "<h1> Выберите значение на оси абсцисс </h1>";
 						break;
+					//Создание первой реперной точки для определения масштаба новой системы координат по оси абсцисс	
 					case 3:
 						controlPoints[3] = currentPoint;
+						//Данная точка обозначается окружностью
 						drawCircle(controlPoints[3], 5, selectPointColor.value);
+						//Отображение поля ввода для значения абсциссы точки в новой системе координат
 						newX3 = prompt("Введите значение абсциссы точки", "0.0");
+						//Отрисовка линии, проходящей через точку 3 и параллельной оси ординат новой системы координат
 						drawLineThroughOnePoint(controlPoints[3], k2, selectLineColor.value);
+						//Создание линии 31, проходящей через точку 3 и параллельной оси абсцисс новой системы координат
 						controlLines["31"] = createLine(controlPoints[3], k1);
+						//Переход к следующей точке
 						mode = 4;
 						promptDiv.innerHTML = "<h1> Выберите еще одно значение на оси абсцисс </h1>";
 						break;
+					//Создание второй реперной точки для определения масштаба новой системы координат по оси абсцисс
 					case 4:
 						controlPoints[4] = currentPoint;
+						//Данная точка обозначается окружностью
 						drawCircle(controlPoints[4], 5, selectPointColor.value);
+						//Отображение поля ввода для значения абсциссы точки в новой системе координат
 						newX4 = prompt("Введите значение абсциссы точки", "0,0");
+						//Отрисовка линии, проходящей через точку 4 и параллельной оси ординат новой системы координат
 						drawLineThroughOnePoint(controlPoints[4], k2, selectLineColor.value);
+						//Создание линии 42, проходящей через точку 4 и параллельной оси ординат новой системы координат
 						controlLines["42"] = createLine(controlPoints[4], k2);
+						//Определение точки пересечения линий 31 и 42
 						controlPoints[7] = findCrossPoint(controlLines["31"], controlLines["42"]);
-
+						//Определение точки пересечения линии, проходящей через точки 3 и 7, и оси ординат новой системы координат
 						controlPoints[8] = findPointOnAxis(controlPoints[3], newX3, controlPoints[7], newX4);
+						//Созание линии-оси ординат новой системы координат
 						controlLines["82"] = createLine(controlPoints[8], k2);
+						//Переход к следующей точке
 						mode = 5;
 						promptDiv.innerHTML = "<h1> Выберите значение на оси ординат </h1>";
 						break;
+					//Создание первой реперной точки для определения масштаба новой системы координат по оси ординат
 					case 5:
 						controlPoints[5] = currentPoint;
+						//Данная точка обозначается окружностью
 						drawCircle(controlPoints[5], 5, selectPointColor.value);
+						//Отображение поля ввода для значения ординаты точки в новой системе координат
 						newY5 = prompt("Введите значение ординаты точки", "0.0");
+						//Отрисовка линии, проходящей через точку 5 и параллельной оси абсцисс новой системы координат
 						drawLineThroughOnePoint(controlPoints[5], k1, selectLineColor.value);
+						//Создание линии, проходящей через точку 5 и параллельной оси абсцисс новой системы координат
 						controlLines["51"] = createLine(controlPoints[5], k1);
+						//Переход к следующей точке
 						mode = 6;
 						promptDiv.innerHTML = "<h1> Выберите еще одно значение на оси абсцисс </h1>";
-						break;	
+						break;
+					//Создание второй реперной точки для определения масштаба новой системы координат по оси ординат	
 					case 6:
 						controlPoints[6] = currentPoint;
+						//Данная точка обозначается окружностью
 						drawCircle(controlPoints[6], 5, selectPointColor.value);
+						//Отображение поля ввода для значения ординаты точки в новой системе координат
 						newY6 = prompt("Введите значение ординаты точки", "0.0");
+						//Отрисовка линии, проходящей через точку 6 и параллельной оси абсцисс новой системы координат
 						drawLineThroughOnePoint(controlPoints[6], k1, selectLineColor.value);
+						//Создание линии, проходящей через точку 6 и параллельной оси абсцисс новой системы координат
 						controlLines["61"] = createLine(controlPoints[6], k1);
+						//Создание линии, проходящей через точку 5 и параллельной оси ординат новой системы координат
 						controlLines["52"] = createLine(controlPoints[5], k2);
+						//Определение точки пересечния линий 61 и 52
 						controlPoints[9] = findCrossPoint(controlLines["61"], controlLines["52"]);
+						//Определение точки пересечения линии, проходящей через точки 5 и 7, и оси абсцисс новой системы координат
 						controlPoints[10] = findPointOnAxis(controlPoints[5], newY5, controlPoints[9], newY6);
+						//Созание линии-оси абсцисс новой системы координат
 						controlLines["101"] = createLine(controlPoints[10], k1);
+						//Определение координат начала координат новой системы координат
 						controlPoints[11] = findCrossPoint(controlLines["101"], controlLines["82"]);
+						//Определение масштабных коэффициентов в случае, если ось абсцисс вертикальна
 						if (k1 === Infinity){
 							sc1 = (newX4 - newX3) / (controlPoints[7].y - controlPoints[3].y);
 							sc2 = (newY6 - newY5) / (controlPoints[9].x - controlPoints[5].x);
+						//Определение масштабных коэффициентов в остальных случаях
 						} else {
 							sc1 = Math.cos(alpha) * (newX4 - newX3) / (controlPoints[7].x - controlPoints[3].x);
 							sc2 = Math.cos(alpha) * (newY6 - newY5) / (controlPoints[5].y - controlPoints[9].y);
 						}
+						//Переход к следующей точке
 						mode = 7;
 						promptDiv.innerHTML = "<h1> Выберите точку на графике функции </h1>";
-						break;	
+						break;
+					//Все реперные точки установлены	
 					default:
+						//Данная точка обозначается окружностью
 						drawCircle(currentPoint, 5, selectPointColor.value);
+						//В textArea tarDotsOnPlot записываются координаты текущей точки, взятые из input'а txtCoordinates.
+
 						dotsOnPlot.value += (newCoordinates.value + "\n");		
 				}
 				
@@ -326,7 +370,10 @@
 //---Вывод значений координат в новой системе координат на textarea tarDotsOnPlot---]
 
 //[---Функции---
-
+			
+			//Функция получения координат вехнего левого угла canvas'а mainCanvas в системе координат page
+			//В качестве аргумента принимает толщину границы canvas'а mainCanvas
+//!!!Неадекватно работает на мобильном устройстве!!!
 			function getCanvasCoordinates(bound){
 				var box = canvas.getBoundingClientRect();
 				return {
@@ -335,6 +382,7 @@
 				};
 
 			}
+//!!!Неадекватно работает на мобильном устройстве!!!
 
 			//Функция очистки canvas'а mainCanvas и заполнения его сеткой 
 			function clearMainCanvas(){
@@ -411,20 +459,25 @@
 				return result;
 			}
 
+			//Функция поиска точки пересечения двух линий
 			function findCrossPoint(line_1, line_2){
 				result = {};
+				//Если линии параллельны или совпадают, то точек пересечения нет
 				if (line_1.k === line_2.k){
 					result.x = NaN;
 					result.y = NaN;
 				} else {
+					//Если линия line_1 вертикальна, а линия line_2 - нет
 					if (line_1.k === Infinity){
 						result.x = line_1.b;
 						result.y = line_2.k * result.x + line_2.b;
 					} else {
+						//Если линия line_2 вертикальна, а линия line_1 - нет
 						if (line_2.k === Infinity){
 							result.x = line_2.b;
 							result.y = line_1.k * result.x + line_1.b;
 						} else {
+							//Если обе линии не вертикальны
 							result.x = (line_2.b - line_1.b) / (line_1.k - line_2.k);
 							result.y = line_1.k * result.x + line_1.b;
 						}
@@ -433,19 +486,24 @@
 				return result;
 			}
 
+			//Функция поиска точки на оси новой системы координат
 			function findPointOnAxis(point1, newCoord1, point2, newCoord2){
 				result = {};
+				//Вычисление масштабного коэффициента
 				var sc = newCoord1 / (newCoord2 - newCoord1);
 				result.x = point1.x - (point2.x - point1.x) * sc;
 				result.y = point1.y - (point2.y - point1.y) * sc;
 				return result;
 			}
 
+			//Функция преобразования координат точки из старой системы координат в новую.
 			function coordinateChange(e, point_0, sc_1, sc_2, phi){
 				var result = {};
+				//Если ось абсцисс вертикальна
 				if (phi === Math.PI / 2.0) {
 					result.x = (e.y - point_0.y) * sc_1;
 					result.y = (e.x - point_0.x) * sc_2;
+				//Во всех остальных случаях
 				} else {
 					result.x = ((e.x - point_0.x) * Math.cos(phi) + (e.y - point_0.y) * Math.sin(phi)) * sc_1;
 					result.y = ((point_0.y - e.y) * Math.cos(phi) - (e.x - point_0.x) * Math.sin(-phi)) * sc_2;					
@@ -502,8 +560,6 @@
 				//Отрисовка линии
 				context.stroke();
 			}
-
-
 
 //---Функции---]
 
