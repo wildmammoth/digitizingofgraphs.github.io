@@ -94,9 +94,29 @@ limitations under the License. -->
 			</form>
 		</div> -->
 		<div align="center">
-			<input id="txtCoordinates" type="text" placeholder="Show coordinates" size="40">
-			<input id="btnClear" type="button" border="1" value="Clear the canvas">
+			1-ая точка
+			<input id="txtX1" type="text" size="10">
+			<img src="circ_green.png">
 		</div>
+		<div align="center">
+			2-ая точка
+			<input id="txtX2" type="text" size="10">
+			<img src="circ_red.png">
+		</div>
+		<div align="center">
+			3-ья точка
+			<input id="txtY3" type="text" size="10">
+			<img src="circ_blue.png">
+		</div>
+		<div align="center">
+			4-ая точка
+			<input id="txtY4" type="text" size="10">
+			<img src="circ_purple.png">
+		</div>
+		<div align="center">
+			<input id="txtCoordinates" type="text" placeholder="Show coordinates" size="40">
+			<input id="btnApply" type="button" border="1" value="Apply axis">
+		</div>						
 		<div align="center">
 			<canvas id="mainCanvas" width="600" height="400" border="solid"> </canvas>
 		</div>
@@ -109,7 +129,9 @@ limitations under the License. -->
 			</textarea>
 
 		</div>
-
+		<div>
+			<img src="1pixel.png" width="100" height="1">
+		</div>
 		<script type="text/javascript">
 //[---Ссылки на элементы интерфейса---		
 			//Ссылка на div firstPrompt с подсказками пользователя в самом верху страницы
@@ -120,8 +142,8 @@ limitations under the License. -->
 			var selectScale = document.getElementById("sltScale");
 			//Ссылка на input txtCoordinates для отображения координат точек в новой системе координат 
 			var newCoordinates = document.getElementById("txtCoordinates");	
-			//Ссылка на button btnClear для очистки canvas'а mainCanvas
-			var clearButton = document.getElementById("btnClear");			
+			//Ссылка на button btnApply для применения значений контрольных точек
+			var applyButton = document.getElementById("btnApply");			
 			//Ссылка на canvas mainCanvas
 			var canvas=document.getElementById('mainCanvas');
 			//Ссылка на textarea tarDotsOnPlot
@@ -205,14 +227,19 @@ limitations under the License. -->
 //---Отображение координаты точки в новой системе координат---]
 
 //[---Очистка введенных значений
-			//Обработчик события для кнопки bntClear
-			clearButton.addEventListener("click", function(event) {
-				//Очистка canvas'a mainCanvas
-				clearMainCanvas();
-				//Создание заголовка в textarea tarDotsOnPlot
-				tarDotsOnPlot.value = "X\';Y\'\n";
+			//Обработчик события для кнопки btnApply
+			applyButton.addEventListener("click", function(event) {
+			if (applyButton.value === "Apply axis"){
+				applyButton.value = "Apply points";
+			} else {
+				applyButton.value = "Apply axis";
+			}
+//Очистка canvas'a mainCanvas
+//clearMainCanvas();
+//Создание заголовка в textarea tarDotsOnPlot
+//tarDotsOnPlot.value = "X\';Y\'\n";
 //!!!Изменение режима!!!
-				mode = 0;
+//mode = 0;
 			});
 //---Очистка введенных значений---]
 
