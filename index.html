@@ -96,22 +96,22 @@ limitations under the License. -->
 		<div align="center">
 			1-ая точка
 			<input id="txtX1" type="text" size="10">
-			<img src="circ_green.png">
+			<img id="imgX1" src="circ_green.png" title="1st point">
 		</div>
 		<div align="center">
 			2-ая точка
 			<input id="txtX2" type="text" size="10">
-			<img src="circ_red.png">
+			<img id="imgX2" src="circ_red.png" title="2nd point">
 		</div>
 		<div align="center">
 			3-ья точка
 			<input id="txtY3" type="text" size="10">
-			<img src="circ_blue.png">
+			<img id="imgY3" src="circ_blue.png" title="3rd point">
 		</div>
 		<div align="center">
 			4-ая точка
 			<input id="txtY4" type="text" size="10">
-			<img src="circ_purple.png">
+			<img id="imgY4" src="circ_purple.png" title="4th point">
 		</div>
 		<div align="center">
 			<input id="txtCoordinates" type="text" placeholder="Show coordinates" size="40">
@@ -130,6 +130,7 @@ limitations under the License. -->
 
 		</div>
 		<div>
+			Картинка в один пиксель:
 			<img src="1pixel.png" width="100" height="1">
 		</div>
 		<script type="text/javascript">
@@ -152,6 +153,15 @@ limitations under the License. -->
 			var selectLineColor = document.getElementById("sltLineColor");
 			//Ссылка на select sltPointColor для выбора цвета точек
 			var selectPointColor = document.getElementById("sltPointColor");
+var pointX1 = document.getElementById("imgX1");
+var pointX2 = document.getElementById("imgX2");
+var pointY3 = document.getElementById("imgY3");
+var pointY4 = document.getElementById("imgY4");
+
+initializePoint(pointX1);
+initializePoint(pointX2);
+initializePoint(pointY3);
+initializePoint(pointY4);
 //---Ссылки на элементы интерфейса---]			
 
 //[---Глобальные переменные---
@@ -229,11 +239,13 @@ limitations under the License. -->
 //[---Очистка введенных значений
 			//Обработчик события для кнопки btnApply
 			applyButton.addEventListener("click", function(event) {
-			if (applyButton.value === "Apply axis"){
-				applyButton.value = "Apply points";
-			} else {
-				applyButton.value = "Apply axis";
-			}
+				if (applyButton.value === "Apply axis"){
+					applyButton.value = "Apply points";
+				} else {
+					applyButton.value = "Apply axis";
+				}
+				//(getCoords(pointX1).left + " ; " + getCoords(pointX1).top);
+				getImageCoordinates(imgX1);
 //Очистка canvas'a mainCanvas
 //clearMainCanvas();
 //Создание заголовка в textarea tarDotsOnPlot
@@ -412,7 +424,19 @@ limitations under the License. -->
 //---Вывод значений координат в новой системе координат на textarea tarDotsOnPlot---]
 
 //[---Функции---
-			
+function getImageCoordinates(targetImage){
+	var someVar = getCoords(targetImage);
+	var someObject = {}
+	someObject.x = someVar.left;
+	someObject.y = someVar.top;
+	//alert(someObject.x + " ; " + someObject.y);
+	var cc = getCanvasCoordinates(3);
+	var somePoint = {};
+	somePoint.x = someObject.x - cc.left + targetImage.width / 2.0;
+	somePoint.y = someObject.y - cc.top + targetImage.height / 2.0;
+	alert(somePoint.x + " ; " + somePoint.y);
+	drawLineThroughOnePoint(somePoint, 0.0, "#000");
+}
 			//Функция получения координат вехнего левого угла canvas'а mainCanvas в системе координат page
 			//В качестве аргумента принимает толщину границы canvas'а mainCanvas
 //!!!Неадекватно работает на мобильном устройстве!!!
@@ -602,6 +626,46 @@ limitations under the License. -->
 				//Отрисовка линии
 				context.stroke();
 			}
+
+				function initializePoint(point){
+					point.onmousedown = function(e){
+						var coords = getCoords(point);
+						var shiftX = e.pageX - coords.left;
+						var shiftY = e.pageY - coords.top;
+						point.style.position = "absolute";
+						document.body.appendChild(point);
+						moveAt(e);
+						point.style.zIndex = 1000; // над другими элементами
+
+						function moveAt(pos) {
+						point.style.left = pos.pageX - shiftX + 'px';
+							point.style.top = pos.pageY - shiftY + 'px';
+						}
+
+						document.onmousemove = function(pos) {
+				    		moveAt(pos);
+				  		};
+
+				  		point.onmouseup = function() {
+				    		document.onmousemove = null;
+				    		point.onmouseup = null;
+				  		};
+
+				  		point.ondragstart = function() {
+				  			return false;
+						};
+					};
+				}
+		
+				function getCoords(elem) { // кроме IE8-
+				  var box = elem.getBoundingClientRect();
+
+				  return {
+				    top: box.top + pageYOffset,
+				    left: box.left + pageXOffset
+				  };
+
+				}
 
 //---Функции---]
 
