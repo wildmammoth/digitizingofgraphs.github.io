@@ -38,6 +38,9 @@ limitations under the License. -->
 				margin: 10px;
 				border: 1px solid;
 			}
+			div {
+				border: 1px solid;
+			}
 			.layer1 {
 				position: fixed;
 			}
@@ -54,6 +57,16 @@ limitations under the License. -->
 				<input id = "iptLoadPlot" type = "file" accept="image/*">
 				Масштаб (от ширины страницы): 
 				<select id="sltScale">
+					<option value="2.0">200%</option>
+					<option value="1.9">190%</option>
+					<option value="1.8">180%</option>
+					<option value="1.7">170%</option>
+					<option value="1.6">160%</option>
+					<option value="1.5">150%</option>
+					<option value="1.4">140%</option>
+					<option value="1.3">130%</option>
+					<option value="1.2">120%</option>
+					<option value="1.1">110%</option>
 					<option value="1.0">100%</option>
 					<option value="0.9">90%</option>
 					<option value="0.8">80%</option>
@@ -95,22 +108,22 @@ limitations under the License. -->
 		</div> -->
 		<div align="center">
 			1-ая точка
-			<input id="txtX1" type="text" size="10">
+			<input id="txtX1" type="text" size="10" value="0.5">
 			<img id="imgX1" src="circ_green.png" title="1st point">
 		</div>
 		<div align="center">
 			2-ая точка
-			<input id="txtX2" type="text" size="10">
+			<input id="txtX2" type="text" size="10" value="0.8">
 			<img id="imgX2" src="circ_red.png" title="2nd point">
 		</div>
 		<div align="center">
 			3-ья точка
-			<input id="txtY3" type="text" size="10">
+			<input id="txtY3" type="text" size="10" value="1.0">
 			<img id="imgY3" src="circ_blue.png" title="3rd point">
 		</div>
 		<div align="center">
 			4-ая точка
-			<input id="txtY4" type="text" size="10">
+			<input id="txtY4" type="text" size="10" value="0.8">
 			<img id="imgY4" src="circ_purple.png" title="4th point">
 		</div>
 		<div align="center">
@@ -133,6 +146,13 @@ limitations under the License. -->
 			Картинка в один пиксель:
 			<img src="1pixel.png" width="100" height="1">
 		</div>
+		<fieldset disabled>
+		<br>
+			<legend> Hello!</legend>
+		<br>
+			Hello!
+		<br>
+		</fieldset>
 		<script type="text/javascript">
 //[---Ссылки на элементы интерфейса---		
 			//Ссылка на div firstPrompt с подсказками пользователя в самом верху страницы
@@ -162,6 +182,7 @@ initializePoint(pointX1);
 initializePoint(pointX2);
 initializePoint(pointY3);
 initializePoint(pointY4);
+
 //---Ссылки на элементы интерфейса---]			
 
 //[---Глобальные переменные---
@@ -174,12 +195,15 @@ initializePoint(pointY4);
 			//Переменные, содержащие значения для четырех реперных точек,
 			//по которым рассчитываются масштабные коэффициенты
 			var newX3, newX4, newY5, newY6;
+			var newX1, newX2, newY3, newY4;
 			//Переменная, содержащая угол наклона оси 0'X' по отношению к оси 0X
 			var alpha;
 			//Масштабные коэффициенты
 			var sc1, sc2;
 			//Тангенсы углов наклона осей абсцисс и ординат новой системы координат соотвественно.
 			var k1, k2;
+
+var count = 0;
 //---Глобальные переменные---]
 
 //[---Выбор графического файла---
@@ -227,9 +251,9 @@ initializePoint(pointY4);
 //!Отображение текущих координат курсора в системе координат canvas'а mainCanvas в input'е txtCoordinates
 				newCoordinates.value = canvasEvent.x + ";" + canvasEvent.y;
 				//Если получены значения всех четырех реперных точек
-				if (mode > 6) {
+				if (mode > 1) {
 					//Преобразование текущих координат курсора в системе canvas'а mainCanvas в координаты в новой системе координат
-					var newXY = coordinateChange(canvasEvent, controlPoints[11], sc1, sc2, alpha);
+					var newXY = coordinateChange(canvasEvent, controlPoints[8], sc1, sc2, alpha);
 					//Отображение преобразованных координат курсора в input'е txtCoordinates
 					newCoordinates.value = newXY.x + ";" + newXY.y;
 				}
@@ -240,12 +264,85 @@ initializePoint(pointY4);
 			//Обработчик события для кнопки btnApply
 			applyButton.addEventListener("click", function(event) {
 				if (applyButton.value === "Apply axis"){
+					controlPoints[1] = getCenterCoordinates(pointX1);
+					controlPoints[2] = getCenterCoordinates(pointX2);
+					if (controlPoints[1].x === controlPoints[2].x && controlPoints[1].y === controlPoints[2].y){
+						k1 = 0;
+						k2 = Infinity;
+					} else {
+					//В противном случае определяем тангенс угла наклона оси абсцисс
+						k1 = (controlPoints[2].y - controlPoints[1].y) / (controlPoints[2].x - controlPoints[1].x);
+						switch (k1){
+							//Если ось абцисс горизонтальна, тогда ось ординат - вертикальна
+							case 0:
+								k2 = Infinity;
+								break;
+							//Если ось абцисс вертикальна, тогда ось ординат - горизонтальна.
+							case -Infinity:
+								k1 = Infinity;
+								k2 = 0;
+								break;
+							//Если ось абцисс вертикальна, тогда ось ординат - горизонтальна.
+							case Infinity:
+								k2 = 0;
+								break;
+							//В других случаях определяем тангенс угла наклона оси ординат таким образом, чтобы угол между осями был равен 90 градусом.
+							default:
+								k2 = -1.0 / k1;
+						}	
+					}
+					//Определение угла наклона оси абсцисс новой системы координат
+					alpha = Math.atan(k1);
+					drawLineThroughTwoPoints(controlPoints[1], controlPoints[2], "#f00");
+					newX1 = txtX1.value;
+					newX2 = txtX2.value;				
+					controlPoints[3] = getCenterCoordinates(pointY3);
+					controlPoints[4] = getCenterCoordinates(pointY4);
+					newY3 = txtY3.value;
+					newY4 = txtY4.value;
+					//Определение точки пересечения линии, проходящей через точки 1 и 2, и оси ординат новой системы координат
+					controlPoints[5] = findPointOnAxis(controlPoints[1], newX1, controlPoints[2], newX2);
+					//Созание линии-оси ординат новой системы координат
+					controlLines["52"] = createLine(controlPoints[5], k2);
+					//Создание линии, проходящей через точку 3 и параллельной оси абсцисс новой системы координат
+					controlLines["31"] = createLine(controlPoints[3], k1);
+					//Создание линии, проходящей через точку 4 и параллельной оси ординат новой системы координат
+					controlLines["42"] = createLine(controlPoints[4], k2);
+					//Определение точки пересечния линий 31 и 42
+					controlPoints[6] = findCrossPoint(controlLines["31"], controlLines["42"]);
+					//Определение точки пересечения линии, проходящей через точки 3 и 6, и оси абсцисс новой системы координат
+					controlPoints[7] = findPointOnAxis(controlPoints[6], newY3, controlPoints[4], newY4);
+					//Созание линии-оси абсцисс новой системы координат
+					controlLines["71"] = createLine(controlPoints[7], k1);
+					//Определение координат начала координат новой системы координат
+					controlPoints[8] = findCrossPoint(controlLines["71"], controlLines["52"]);
+					//Определение масштабных коэффициентов в случае, если ось абсцисс вертикальна
+					if (k1 === Infinity){
+						sc1 = (newX2 - newX1) / (controlPoints[2].y - controlPoints[1].y);
+						sc2 = (newY4 - newY3) / (controlPoints[6].x - controlPoints[4].x);
+					//Определение масштабных коэффициентов в остальных случаях
+					} else {
+						sc1 = Math.cos(alpha) * (newX2 - newX1) / (controlPoints[2].x - controlPoints[1].x);
+						sc2 = Math.cos(alpha) * (newY4 - newY3) / (controlPoints[6].y - controlPoints[4].y);
+					}
+					mode = 2;
 					applyButton.value = "Apply points";
 				} else {
+					if (count > 0){
+						alert(count);
+						var temp;
+						var cPoint;
+						for (var i = 0; i < count; i++) {
+							temp = document.getElementById("point" + i);
+							cPoint = getCenterCoordinates(temp);
+							cPoint = coordinateChange();e, point_0, sc_1, sc_2, phi
+							dotsOnPlot.value += (i + " ; " + cPoint.x + " ; " + cPoint.y + "\n");
+						}
+					}
 					applyButton.value = "Apply axis";
+					mode = 1;
 				}
-				//(getCoords(pointX1).left + " ; " + getCoords(pointX1).top);
-				getImageCoordinates(imgX1);
+				
 //Очистка canvas'a mainCanvas
 //clearMainCanvas();
 //Создание заголовка в textarea tarDotsOnPlot
@@ -262,6 +359,21 @@ initializePoint(pointY4);
 			clearMainCanvas();
 			//Обработчик события нажатия мыши на canvas mainCanvas
 			canvas.addEventListener("click", function(event){
+				if (mode == 2){
+					var newPoint = document.createElement("img");
+					newPoint.id = "point" + count;
+					newPoint.src = "circ_black.png";
+					newPoint.style.position = "absolute";
+					document.body.appendChild(newPoint);
+					newPoint.style.left = event.pageX - 14 + "px";
+					newPoint.style.top = event.pageY - 14 + "px";
+					newPoint.style.zIndex = 1000;
+					initializePoint(newPoint);
+					count++;
+				} else {
+
+				}
+				/*
 				//Переменная для хранения координат левого верхнего угла canvas'а mainCanvas в системе координат page
 				var canvasCoord = getCanvasCoordinates(3);
 				//Переменная для хранения координат текущей точки в системе координат canvas'а mainCanvas
@@ -411,10 +523,9 @@ initializePoint(pointY4);
 						//Данная точка обозначается окружностью
 						drawCircle(currentPoint, 5, selectPointColor.value);
 						//В textArea tarDotsOnPlot записываются координаты текущей точки, взятые из input'а txtCoordinates.
-
 						dotsOnPlot.value += (newCoordinates.value + "\n");		
 				}
-				
+				*/
 			});
 //---Взаимодействие с canvas'ом mainCanvas---]
 
@@ -424,18 +535,14 @@ initializePoint(pointY4);
 //---Вывод значений координат в новой системе координат на textarea tarDotsOnPlot---]
 
 //[---Функции---
-function getImageCoordinates(targetImage){
-	var someVar = getCoords(targetImage);
-	var someObject = {}
-	someObject.x = someVar.left;
-	someObject.y = someVar.top;
-	//alert(someObject.x + " ; " + someObject.y);
-	var cc = getCanvasCoordinates(3);
+function getCenterCoordinates(targetObject){
+	var cornerCoordinates = getCoords(targetObject);
+	var canvasCoordinates = getCanvasCoordinates(3);
 	var somePoint = {};
-	somePoint.x = someObject.x - cc.left + targetImage.width / 2.0;
-	somePoint.y = someObject.y - cc.top + targetImage.height / 2.0;
-	alert(somePoint.x + " ; " + somePoint.y);
-	drawLineThroughOnePoint(somePoint, 0.0, "#000");
+	return {
+		x: cornerCoordinates.x - canvasCoordinates.left + Math.round(targetObject.width / 2.0),
+		y: cornerCoordinates.y - canvasCoordinates.top + Math.round(targetObject.height / 2.0)
+	}
 }
 			//Функция получения координат вехнего левого угла canvas'а mainCanvas в системе координат page
 			//В качестве аргумента принимает толщину границы canvas'а mainCanvas
@@ -607,7 +714,18 @@ function getImageCoordinates(targetImage){
 			}
 
 			//Функция отрисоки линии, проходящей через две точки
-			function drawLineThroughTwoPoints(x_1, y_1, x_2, y_2, lineColor){
+			function drawLineThroughTwoPoints(point_1, point_2, lineColor){
+				//Установка цвета линии
+				context.strokeStyle = lineColor; //"#f00"
+				context.beginPath();
+				context.moveTo(point_1.x, point_1.y);
+				context.lineTo(point_2.x, point_2.y);
+				//Отрисовка линии
+				context.stroke();
+			}
+
+			//Функция отрисоки линии, проходящей через две точки
+			function ddddrawLineThroughTwoPoints(x_1, y_1, x_2, y_2, lineColor){
 				//Установка цвета линии
 				context.strokeStyle = lineColor; //"#f00"
 				context.beginPath();
@@ -630,8 +748,8 @@ function getImageCoordinates(targetImage){
 				function initializePoint(point){
 					point.onmousedown = function(e){
 						var coords = getCoords(point);
-						var shiftX = e.pageX - coords.left;
-						var shiftY = e.pageY - coords.top;
+						var shiftX = e.pageX - coords.x;
+						var shiftY = e.pageY - coords.y;
 						point.style.position = "absolute";
 						document.body.appendChild(point);
 						moveAt(e);
@@ -661,8 +779,9 @@ function getImageCoordinates(targetImage){
 				  var box = elem.getBoundingClientRect();
 
 				  return {
-				    top: box.top + pageYOffset,
-				    left: box.left + pageXOffset
+				  	x: box.left + pageXOffset,
+				    y: box.top + pageYOffset
+				    
 				  };
 
 				}
