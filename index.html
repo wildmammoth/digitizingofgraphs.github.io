@@ -329,26 +329,18 @@ var count = 0;
 					applyButton.value = "Apply points";
 				} else {
 					if (count > 0){
-						alert(count);
 						var temp;
 						var cPoint;
 						for (var i = 0; i < count; i++) {
 							temp = document.getElementById("point" + i);
 							cPoint = getCenterCoordinates(temp);
 							cPoint = coordinateChange(cPoint, controlPoints[8], sc1, sc2, alpha);
-							dotsOnPlot.value += (i + " ; " + cPoint.x + " ; " + cPoint.y + "\n");
+							dotsOnPlot.value += ((i+1) + " ; " + cPoint.x + " ; " + cPoint.y + "\n");
 						}
 					}
 					applyButton.value = "Apply axis";
 					mode = 1;
 				}
-				
-//Очистка canvas'a mainCanvas
-//clearMainCanvas();
-//Создание заголовка в textarea tarDotsOnPlot
-//tarDotsOnPlot.value = "X\';Y\'\n";
-//!!!Изменение режима!!!
-//mode = 0;
 			});
 //---Очистка введенных значений---]
 
@@ -373,165 +365,12 @@ var count = 0;
 				} else {
 
 				}
-				/*
-				//Переменная для хранения координат левого верхнего угла canvas'а mainCanvas в системе координат page
-				var canvasCoord = getCanvasCoordinates(3);
-				//Переменная для хранения координат текущей точки в системе координат canvas'а mainCanvas
-				var currentPoint = createCanvasEvent(event, canvasCoord);
-				//
-				switch (mode) {
-					//Клик по canvas'у mainCanvas до загрузки графика вызывает напоминание пользователю о необходимости загрузки графика
-					case 0:
-						alert("Загрузите график!");
-						break;
-					//В случае загрузки графика создается первая реперная точка для определения угла наклона оси абсцисс новой системы координат
-					case 1:
-						controlPoints[1] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[1], 5, selectPointColor.value);
-						//Переход к следующей точке
-						mode = 2;
-						promptDiv.innerHTML = "<h1> Выберите еще одну точку, лежащую на оси абсцисс </h1>";
-						break;
-					//Создание второй реперной точки для определения угла наклона оси абсцисс новой системы координат
-					case 2:
-						controlPoints[2] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[2], 5, selectPointColor.value);
-						//Определение тангенсов углов наклона осей новой системы координат
-						//Если первая и вторая точки совпадают, то ось абсцисс считается горизонтальной, а ось ординат - вертикальной
-						if (controlPoints[1].x === controlPoints[2].x && controlPoints[1].y === controlPoints[2].y){
-							k1 = 0;
-							k2 = Infinity;
-						} else {
-							//В противном случае определяем тангенс угла наклона оси абсцисс
-							k1 = (controlPoints[2].y - controlPoints[1].y) / (controlPoints[2].x - controlPoints[1].x);
-							switch (k1){
-								//Если ось абцисс горизонтальна, тогда ось ординат - вертикальна
-								case 0:
-									k2 = Infinity;
-									break;
-								//Если ось абцисс вертикальна, тогда ось ординат - горизонтальна.
-								case -Infinity:
-									k1 = Infinity;
-									k2 = 0;
-									break;
-								//Если ось абцисс вертикальна, тогда ось ординат - горизонтальна.
-								case Infinity:
-									k2 = 0;
-									break;
-								//В других случаях определяем тангенс угла наклона оси ординат таким образом, чтобы угол между осями был равен 90 градусом.
-								default:
-									k2 = -1.0 / k1;
-							}	
-						}
-						//Определение угла наклона оси абсцисс новой системы координат
-						alpha = Math.atan(k1);
-						//Отрисовка оси абсцисс новой системы координат
-						drawLineThroughOnePoint(controlPoints[2], k1, selectLineColor.value);
-						//Переход к следующей точке
-						mode = 3;
-						promptDiv.innerHTML = "<h1> Выберите значение на оси абсцисс </h1>";
-						break;
-					//Создание первой реперной точки для определения масштаба новой системы координат по оси абсцисс	
-					case 3:
-						controlPoints[3] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[3], 5, selectPointColor.value);
-						//Отображение поля ввода для значения абсциссы точки в новой системе координат
-						newX3 = prompt("Введите значение абсциссы точки", "0.0");
-						//Отрисовка линии, проходящей через точку 3 и параллельной оси ординат новой системы координат
-						drawLineThroughOnePoint(controlPoints[3], k2, selectLineColor.value);
-						//Создание линии 31, проходящей через точку 3 и параллельной оси абсцисс новой системы координат
-						controlLines["31"] = createLine(controlPoints[3], k1);
-						//Переход к следующей точке
-						mode = 4;
-						promptDiv.innerHTML = "<h1> Выберите еще одно значение на оси абсцисс </h1>";
-						break;
-					//Создание второй реперной точки для определения масштаба новой системы координат по оси абсцисс
-					case 4:
-						controlPoints[4] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[4], 5, selectPointColor.value);
-						//Отображение поля ввода для значения абсциссы точки в новой системе координат
-						newX4 = prompt("Введите значение абсциссы точки", "0,0");
-						//Отрисовка линии, проходящей через точку 4 и параллельной оси ординат новой системы координат
-						drawLineThroughOnePoint(controlPoints[4], k2, selectLineColor.value);
-						//Создание линии 42, проходящей через точку 4 и параллельной оси ординат новой системы координат
-						controlLines["42"] = createLine(controlPoints[4], k2);
-						//Определение точки пересечения линий 31 и 42
-						controlPoints[7] = findCrossPoint(controlLines["31"], controlLines["42"]);
-						//Определение точки пересечения линии, проходящей через точки 3 и 7, и оси ординат новой системы координат
-						controlPoints[8] = findPointOnAxis(controlPoints[3], newX3, controlPoints[7], newX4);
-						//Созание линии-оси ординат новой системы координат
-						controlLines["82"] = createLine(controlPoints[8], k2);
-						//Переход к следующей точке
-						mode = 5;
-						promptDiv.innerHTML = "<h1> Выберите значение на оси ординат </h1>";
-						break;
-					//Создание первой реперной точки для определения масштаба новой системы координат по оси ординат
-					case 5:
-						controlPoints[5] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[5], 5, selectPointColor.value);
-						//Отображение поля ввода для значения ординаты точки в новой системе координат
-						newY5 = prompt("Введите значение ординаты точки", "0.0");
-						//Отрисовка линии, проходящей через точку 5 и параллельной оси абсцисс новой системы координат
-						drawLineThroughOnePoint(controlPoints[5], k1, selectLineColor.value);
-						//Создание линии, проходящей через точку 5 и параллельной оси абсцисс новой системы координат
-						controlLines["51"] = createLine(controlPoints[5], k1);
-						//Переход к следующей точке
-						mode = 6;
-						promptDiv.innerHTML = "<h1> Выберите еще одно значение на оси абсцисс </h1>";
-						break;
-					//Создание второй реперной точки для определения масштаба новой системы координат по оси ординат	
-					case 6:
-						controlPoints[6] = currentPoint;
-						//Данная точка обозначается окружностью
-						drawCircle(controlPoints[6], 5, selectPointColor.value);
-						//Отображение поля ввода для значения ординаты точки в новой системе координат
-						newY6 = prompt("Введите значение ординаты точки", "0.0");
-						//Отрисовка линии, проходящей через точку 6 и параллельной оси абсцисс новой системы координат
-						drawLineThroughOnePoint(controlPoints[6], k1, selectLineColor.value);
-						//Создание линии, проходящей через точку 6 и параллельной оси абсцисс новой системы координат
-						controlLines["61"] = createLine(controlPoints[6], k1);
-						//Создание линии, проходящей через точку 5 и параллельной оси ординат новой системы координат
-						controlLines["52"] = createLine(controlPoints[5], k2);
-						//Определение точки пересечния линий 61 и 52
-						controlPoints[9] = findCrossPoint(controlLines["61"], controlLines["52"]);
-						//Определение точки пересечения линии, проходящей через точки 5 и 7, и оси абсцисс новой системы координат
-						controlPoints[10] = findPointOnAxis(controlPoints[5], newY5, controlPoints[9], newY6);
-						//Созание линии-оси абсцисс новой системы координат
-						controlLines["101"] = createLine(controlPoints[10], k1);
-						//Определение координат начала координат новой системы координат
-						controlPoints[11] = findCrossPoint(controlLines["101"], controlLines["82"]);
-						//Определение масштабных коэффициентов в случае, если ось абсцисс вертикальна
-						if (k1 === Infinity){
-							sc1 = (newX4 - newX3) / (controlPoints[7].y - controlPoints[3].y);
-							sc2 = (newY6 - newY5) / (controlPoints[9].x - controlPoints[5].x);
-						//Определение масштабных коэффициентов в остальных случаях
-						} else {
-							sc1 = Math.cos(alpha) * (newX4 - newX3) / (controlPoints[7].x - controlPoints[3].x);
-							sc2 = Math.cos(alpha) * (newY6 - newY5) / (controlPoints[5].y - controlPoints[9].y);
-						}
-						//Переход к следующей точке
-						mode = 7;
-						promptDiv.innerHTML = "<h1> Выберите точку на графике функции </h1>";
-						break;
-					//Все реперные точки установлены	
-					default:
-						//Данная точка обозначается окружностью
-						drawCircle(currentPoint, 5, selectPointColor.value);
-						//В textArea tarDotsOnPlot записываются координаты текущей точки, взятые из input'а txtCoordinates.
-						dotsOnPlot.value += (newCoordinates.value + "\n");		
-				}
-				*/
 			});
 //---Взаимодействие с canvas'ом mainCanvas---]
 
 //[---Вывод значений координат в новой системе координат на textarea tarDotsOnPlot---
 			//Создание заголовка в textarea tarDotsOnPlot
-			dotsOnPlot.value="X' ; Y'\n";
+			dotsOnPlot.value="№ ; X' ; Y'\n";
 //---Вывод значений координат в новой системе координат на textarea tarDotsOnPlot---]
 
 //[---Функции---
@@ -720,17 +559,6 @@ function getCenterCoordinates(targetObject){
 				context.beginPath();
 				context.moveTo(point_1.x, point_1.y);
 				context.lineTo(point_2.x, point_2.y);
-				//Отрисовка линии
-				context.stroke();
-			}
-
-			//Функция отрисоки линии, проходящей через две точки
-			function ddddrawLineThroughTwoPoints(x_1, y_1, x_2, y_2, lineColor){
-				//Установка цвета линии
-				context.strokeStyle = lineColor; //"#f00"
-				context.beginPath();
-				context.moveTo(x_1, y_1);
-				context.lineTo(x_2, y_2);
 				//Отрисовка линии
 				context.stroke();
 			}
