@@ -335,7 +335,7 @@ var count = 0;
 						for (var i = 0; i < count; i++) {
 							temp = document.getElementById("point" + i);
 							cPoint = getCenterCoordinates(temp);
-							cPoint = coordinateChange();e, point_0, sc_1, sc_2, phi
+							cPoint = coordinateChange(cPoint, controlPoints[8], sc1, sc2, alpha);
 							dotsOnPlot.value += (i + " ; " + cPoint.x + " ; " + cPoint.y + "\n");
 						}
 					}
