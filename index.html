@@ -33,6 +33,7 @@ limitations under the License. -->
 				height: 280px;
 				resize: none;
 				border: 1px solid;
+				font-size: 25px;
 			}
 			input {
 				margin: 10px;
@@ -44,6 +45,30 @@ limitations under the License. -->
 			.layer1 {
 				position: fixed;
 			}
+			.greentext{
+				color: rgb(0, 255, 0);
+				font-size: 25px;
+				height: 30px;
+			}
+			.redtext {
+				color: rgb(255, 0, 0);
+				font-size: 25px;
+				height: 30px;
+			}
+			.bluetext {
+				color: rgb(0, 0, 255);
+				font-size: 25px;
+				height: 30px;
+			}
+			.purpletext {
+				color: rgb(255, 0, 255);
+				font-size: 25px;
+				height: 30px;
+			}
+			.largetext {
+				font-size: 20px;
+				height: 30px;
+			}
 		</style>
 	</head>
 	<body>
@@ -52,11 +77,11 @@ limitations under the License. -->
 			Выберите файл, содержащий график
 			</h1>
 		</div>
-		<div align="center">
+		<div align="center" >
 			<form id="frmChoosePlot" enctype="multipart/form-data" method="POST">
-				<input id = "iptLoadPlot" type = "file" accept="image/*">
+				<input id = "iptLoadPlot" type = "file" class="largetext" accept="image/*">
 				Масштаб (от ширины страницы): 
-				<select id="sltScale">
+				<select id="sltScale" class="largetext">
 					<option value="2.0">200%</option>
 					<option value="1.9">190%</option>
 					<option value="1.8">180%</option>
@@ -107,33 +132,29 @@ limitations under the License. -->
 			</form>
 		</div> -->
 		<div align="center">
-			1-ая точка
-			<input id="txtX1" type="text" size="10" value="0.5">
-			<img id="imgX1" src="circ_green.png" title="1st point">
+			<table>
+				<tr>
+					<td><img id="imgX1" src="circ_green.png" title="1st point"></td>
+					<td><input id="txtX1" type="text" class="greentext" size="10" value="0.5"></td>
+					<td><input id="txtX2" type="text" class="redtext" size="10" value="0.8"></td>
+					<td><img id="imgX2" src="circ_red.png" title="2nd point"></td>
+				</tr>
+				<tr>
+					<td><img id="imgY3" src="circ_blue.png" title="3rd point"></td>
+					<td><input id="txtY3" type="text" class="bluetext" size="10" value="1.0"></td>
+					<td><input id="txtY4" type="text" class="purpletext" size="10" value="0.8"></td>
+					<td><img id="imgY4" src="circ_purple.png" title="4th point"></td>
+				</tr>
+			</table>	
 		</div>
 		<div align="center">
-			2-ая точка
-			<input id="txtX2" type="text" size="10" value="0.8">
-			<img id="imgX2" src="circ_red.png" title="2nd point">
-		</div>
-		<div align="center">
-			3-ья точка
-			<input id="txtY3" type="text" size="10" value="1.0">
-			<img id="imgY3" src="circ_blue.png" title="3rd point">
-		</div>
-		<div align="center">
-			4-ая точка
-			<input id="txtY4" type="text" size="10" value="0.8">
-			<img id="imgY4" src="circ_purple.png" title="4th point">
-		</div>
-		<div align="center">
-			<input id="txtCoordinates" type="text" placeholder="Show coordinates" size="40">
-			<input id="btnApply" type="button" border="1" value="Apply axis">
+			<input id="txtCoordinates" type="text" class="largetext" placeholder="Show coordinates" size="40">
+			<input id="btnApply" type="button" class="largetext" border="1" value="Apply axis">
 		</div>						
 		<div align="center">
 			<canvas id="mainCanvas" width="600" height="400" border="solid"> </canvas>
 		</div>
-		<p align="center">
+		<p align="center" class="largetext">
 			Координаты точек:
 		</p>
 		<div align="center">
